@@ -1,0 +1,84 @@
+{
+  "name": "@panoply/viewports",
+  "description": "A tiny (900 bytes gzipped) media query utility for programmatic control of screen viewports.",
+  "version": "0.0.1",
+  "homepage": "https://github.com/panoply/viewports",
+  "author": {
+    "name": "Nikolas Savvidis",
+    "url": "https://github.com/panoply"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/panoply/viewports.git"
+  },
+  "bugs": {
+    "url": "https://github.com/panoply/viewports/issues"
+  },
+  "license": "MIT",
+  "type": "module",
+  "types": "./index.d.ts",
+  "module": "./index.js",
+  "exports": {
+    ".": {
+      "types": "./index.d.ts",
+      "import": "./index.js",
+      "default": "./index.js"
+    }
+  },
+  "files": [
+    "index.js",
+    "index.scss",
+    "index.css",
+    "index.d.ts"
+  ],
+  "keywords": [
+    "media",
+    "querymedia",
+    "matchMedia",
+    "viewport",
+    "responsive",
+    "screens"
+  ],
+  "prettier": "@sissel/prettier-config",
+  "eslintConfig": {
+    "ignorePatterns": [
+      "package",
+      "types",
+      "index.js",
+      "docs/public"
+    ],
+    "extends": "@sissel/eslint-config",
+    "rules": {
+      "multiline-ternary": "off"
+    }
+  },
+  "scripts": {
+    "dev": "esbuild src/index.ts --outfile=index.js --format=esm --bundle --watch",
+    "build": "pnpm run esm",
+    "esm": "esbuild src/index.ts --outfile=index.js --format=esm --bundle --mangle-props=^[$] --minify",
+    "gzs": "gzip-size index.js --include-original"
+  },
+  "browserslist": [
+    "defaults",
+    "Chrome >= 78",
+    "Firefox >= 78",
+    "Safari >= 10",
+    "Edge >= 18",
+    "IE >= 11",
+    "Opera >= 73",
+    "ChromeAndroid >= 75",
+    "ios_saf >= 9",
+    "Android >= 4",
+    "not dead"
+  ],
+  "devDependencies": {
+    "@sissel/eslint-config": "^1.1.0",
+    "@sissel/prettier-config": "^1.1.0",
+    "browserslist": "^4.21.4",
+    "esbuild": "^0.15.12",
+    "eslint": "^8.26.0",
+    "gzip-size-cli": "^5.1.0",
+    "prettier": "^2.7.1",
+    "typescript": "^4.8.4"
+  }
+}
