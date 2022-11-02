@@ -1,7 +1,7 @@
 {
   "name": "@panoply/viewports",
   "description": "A tiny (900 bytes gzipped) media query utility for programmatic control of screen viewports.",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "homepage": "https://github.com/panoply/viewports",
   "author": {
     "name": "Nikolas Savvidis",

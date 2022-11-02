@@ -155,9 +155,9 @@ export const screens = (options: ViewportOptions | ViewportOptions[]) => {
   const { id } = state.screen;
 
   if (!viewports.size) {
-    addEventListener('resize', debounce((event: UIEvent) => {
+    addEventListener('resize', debounce(() => {
       viewports.forEach((viewport) => {
-        if (viewport.screen.active) viewport.onresize(event.view.screenX);
+        if (viewport.screen.active) viewport.onresize(window.innerWidth);
       });
     }, 25), true);
   }
