@@ -91,6 +91,7 @@ function debounce (func?: Function, wait?: number) {
     };
 
     if (timeout) cancelAnimationFrame(timeout);
+
     timeout = requestAnimationFrame(later);
 
   };
@@ -117,7 +118,7 @@ function methods (opts: ViewportOptions, vp: ViewportScreen) {
   }
 
   if (typeof opts.oninit === 'function') {
-    vp.onresize.add(opts.oninit);
+    vp.oninit.add(opts.oninit);
   }
 }
 
@@ -304,6 +305,43 @@ export const active = (id?: string) => {
   const filter = items.filter(({ active }) => active === true);
 
   return filter.length > 1 ? filter : filter[0];
+
+};
+
+/**
+ * Test viewport
+ *
+ * Test whether or not we are within a screen viewport. Accepts
+ * a string with optional seperator character of screen ids or an array list.
+ *
+ * @example
+ *
+ * import * as viewport from 'qvp'
+ *
+ * // Define some screens
+ * vp.screens([
+ *   {
+ *     id: 'sm',
+ *     query: '(max-width: 576px)',
+ *   },
+ *   {
+ *     id: 'md',
+ *     query: '(min-width: 768px) and (max-width: 992px)'
+ *   }
+ * ]);
+ *
+ * // See if we are in viewport
+ * if(viewport.test('xs,sm')) {
+ *    console.log('screen size is within sm and xs range')
+ * }
+ */
+export const test = (screens: string | string[], separator = ',') => {
+
+  if (typeof screens === 'string') {
+    return screens.indexOf(separator) > -1 ? screens.split(separator).some(active) : !!active(screens);
+  }
+
+  return screens.some(active);
 
 };
 

@@ -124,6 +124,34 @@ declare const list: (ids?: string[]) => ViewportScreen[];
  */
 declare const active: (id?: string) => boolean | ViewportScreen | ViewportScreen[];
 /**
+ * Test viewport
+ *
+ * Test whether or not we are within a screen viewport. Accepts
+ * a string with optional seperator character of screen ids or an array list.
+ *
+ * @example
+ *
+ * import * as viewport from 'qvp'
+ *
+ * // Define some screens
+ * vp.screens([
+ *   {
+ *     id: 'sm',
+ *     query: '(max-width: 576px)',
+ *   },
+ *   {
+ *     id: 'md',
+ *     query: '(min-width: 768px) and (max-width: 992px)'
+ *   }
+ * ]);
+ *
+ * // See if we are in viewport
+ * if(viewport.test('xs,sm')) {
+ *    console.log('screen size is within sm and xs range')
+ * }
+ */
+declare const test: (screens: string | string[], separator?: string) => boolean;
+/**
  * Remove viewport query
  *
  * Removes and destroys the viewport screen and store with
@@ -137,4 +165,4 @@ declare const remove: (id: string) => void;
  */
 declare const destroy: () => void;
 
-export { active, add, destroy, get, list, remove, screens, viewports };
+export { active, add, destroy, get, list, remove, screens, test, viewports };

@@ -1,6 +1,6 @@
 # qvp
 
-A tiny (900 byte gzipped) media query utility for programmatic control in different screen viewports within the browser.
+A tiny (1kb gzipped) media query utility for programmatic control in different screen viewports within the browser.
 
 ### Install
 
@@ -54,14 +54,15 @@ The module provides several helpful methods for querying and retrieving context 
 ```ts
 import * as vp from 'qvp';
 
-vp.add(id, {})       // Extends the screen with new methods
-vp.get(id)           // Returns the viewport and screen matching the id
-vp.active()          // List of active screens or single screen
-vp.active(id)        // Boolean indicating whether the screen is active
-vp.list()            // List of viewport screens states
-vp.list(ids[])       // List of viewport screen states matching the ids
-vp.remove(id)        // Remove a viewport matching the id from store
-vp.destroy()         // Tear down and remove all instances
+vp.add(id, {})                    // Extends the screen with new methods
+vp.get(id)                        // Returns the viewport and screen matching the id
+vp.active()                       // List of active screens or single screen
+vp.active(id)                     // Boolean indicating whether the screen is active
+vp.list()                         // List of viewport screens states
+vp.list(ids[])                    // List of viewport screen states matching the ids
+vp.test(id | id[], separator?)    // Test utility for validating screens
+vp.remove(id)                     // Remove a viewport matching the id from store
+vp.destroy()                      // Tear down and remove all instances
 
 ```
 
