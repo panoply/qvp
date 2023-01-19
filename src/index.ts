@@ -128,17 +128,17 @@ function methods (opts: ViewportOptions, vp: ViewportScreen) {
  */
 function create (opts: ViewportOptions) {
 
-  const vp: ViewportScreen = Object.create(null);
-
-  vp.id = opts.id;
-  vp.query = opts.query || 'all';
-  vp.active = false;
-  vp.test = matchMedia(vp.query);
-
-  vp.onenter = new Set();
-  vp.onexit = new Set();
-  vp.onresize = new Set();
-  vp.oninit = new Set();
+  const query = opts.query || 'all';
+  const vp: ViewportScreen = {
+    id: opts.id,
+    query,
+    active: false,
+    test: matchMedia(query),
+    onenter: new Set(),
+    onexit: new Set(),
+    onresize: new Set(),
+    oninit: new Set()
+  };
 
   methods(opts, vp);
 
@@ -156,6 +156,7 @@ function create (opts: ViewportOptions) {
 
     vp.onenter.forEach(method => method());
     vp.active = true;
+
   };
 
   /**
@@ -182,7 +183,7 @@ function create (opts: ViewportOptions) {
   /**
    * Listen
    *
-   * Invoked when the screen viewport has existed
+   * Invoked when the screen viewport has exited
    */
   const listen = ({ matches }: MediaQueryListEvent) => matches ? onenter() : onexit();
 
@@ -216,23 +217,25 @@ export const screens = (options: ViewportOptions | ViewportOptions[]) => {
 
   if (Array.isArray(options)) return options.forEach(screens);
 
-  if (!('id' in options)) throw new Error('viewports: Missing an "id" reference');
+  if (!('id' in options)) throw new Error('qvp: Missing an "id" reference');
 
   const state = create(options);
   const { id } = state.screen;
 
   if (!viewports.size) {
+
     addEventListener('resize', debounce(() => {
       viewports.forEach((viewport) => {
         if (viewport.screen.active) viewport.onresize(window.innerWidth);
       });
     }, 25), true);
+
   }
 
   if (!viewports.has(id)) {
     viewports.set(id, state);
   } else {
-    console.warn(`viewports: The id "${id}" is already defined, use viewports.add() instead.`);
+    console.warn(`qvp: The id "${id}" is already defined, use qvp.add() instead.`);
   }
 };
 
@@ -258,7 +261,7 @@ export const add = (id: string, actions: ViewportFunctions) => {
 
   const vp = get(id);
 
-  if (vp === false) return console.error(`viewports: There is no viewport using id "${id}"`);
+  if (vp === false) return console.error(`qvp: There is no viewport using an id of "${id}"`);
 
   methods(actions as ViewportOptions, vp.screen);
 
@@ -327,7 +330,8 @@ export const remove = (id: string) => {
 export const destroy = () => {
 
   removeEventListener('resize', debounce());
-  viewports.forEach(viewport => viewport.destroy());
+
+  viewports.forEach(vp => vp.destroy());
   viewports.clear();
 
 };

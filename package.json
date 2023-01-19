@@ -1,18 +1,18 @@
 {
-  "name": "@panoply/viewports",
+  "name": "qvp",
   "description": "A tiny (900 bytes gzipped) media query utility for programmatic control of screen viewports.",
-  "version": "0.0.3",
-  "homepage": "https://github.com/panoply/viewports",
+  "version": "0.1.0",
+  "homepage": "https://github.com/panoply/qvp",
   "author": {
     "name": "Nikolas Savvidis",
     "url": "https://github.com/panoply"
   },
   "repository": {
     "type": "git",
-    "url": "git://github.com/panoply/viewports.git"
+    "url": "git://github.com/panoply/qvp.git"
   },
   "bugs": {
-    "url": "https://github.com/panoply/viewports/issues"
+    "url": "https://github.com/panoply/qvp/issues"
   },
   "license": "MIT",
   "type": "module",
