@@ -7,7 +7,7 @@ A tiny (900 byte gzipped) media query utility for programmatic control in differ
 The module is shipped for ESM consumption in the Browser.
 
 ```bash
-pnpm add @panoply/viewports
+pnpm add qvp
 ```
 
 # Basic Usage
@@ -15,9 +15,9 @@ pnpm add @panoply/viewports
 The module uses named exports, so assign a default.
 
 ```js
-import qvp from 'qvp';
+import * as vp from 'qvp';
 
-qvp.screens([
+vp.screens([
   {
     id: 'sm',
     query: '(max-width: 576px)',
@@ -52,16 +52,16 @@ The module provides several helpful methods for querying and retrieving context 
 
 <!-- prettier-ignore -->
 ```ts
-import * as qvp from 'qvp';
+import * as vp from 'qvp';
 
-qvp.add(id, {})       // Extends the screen with new methods
-qvp.get(id)           // Returns the viewport and screen matching the id
-qvp.active()          // List of active screens or single screen
-qvp.active(id)        // Boolean indicating whether the screen is active
-qvp.list()            // List of viewport screens states
-qvp.list(ids[])       // List of viewport screen states matching the ids
-qvp.remove(id)        // Remove a viewport matching the id from store
-qvp.destroy()         // Tear down and remove all instances
+vp.add(id, {})       // Extends the screen with new methods
+vp.get(id)           // Returns the viewport and screen matching the id
+vp.active()          // List of active screens or single screen
+vp.active(id)        // Boolean indicating whether the screen is active
+vp.list()            // List of viewport screens states
+vp.list(ids[])       // List of viewport screen states matching the ids
+vp.remove(id)        // Remove a viewport matching the id from store
+vp.destroy()         // Tear down and remove all instances
 
 ```
 
@@ -78,21 +78,21 @@ viewports.forEach(viewport => {
 
   // SCREEN INSTANCE GETTER
 
-  qvp.screen            // The screen instance
-  qvp.screen.id         // The screen id value
-  qvp.screen.query      // The media query value
-  qvp.screen.active     // A boolean value indicating whether the viewport is active
-  qvp.screen.oninit     // A Set list of methods to invoke oninit
-  qvp.screen.onenter    // A Set list of methods to invoke onenter
-  qvp.screen.onexit     // A Set list of methods to invoke onexit
-  qvp.screen.onresize   // A Set list of methods to invoke when resizing
+  viewport.screen            // The screen instance
+  viewport.screen.id         // The screen id value
+  viewport.screen.query      // The media query value
+  viewport.screen.active     // A boolean value indicating whether the viewport is active
+  viewport.screen.oninit     // A Set list of methods to invoke oninit
+  viewport.screen.onenter    // A Set list of methods to invoke onenter
+  viewport.screen.onexit     // A Set list of methods to invoke onexit
+  viewport.screen.onresize   // A Set list of methods to invoke when resizing
 
   // METHOD TRIGGERS
 
-  qvp.oninit()          // Calls all methods in screen.oninit Set (null if already invoked)
-  qvp.onenter()         // Calls all methods in screen.onenter Set
-  qvp.onexit()          // Calls all methods in screen.onexit Set
-  qvp.onresize()        // Calls all methods in screen.onresize Set
+  viewport.oninit()          // Calls all methods in screen.oninit Set (null if already invoked)
+  viewport.onenter()         // Calls all methods in screen.onenter Set
+  viewport.onexit()          // Calls all methods in screen.onexit Set
+  viewport.onresize()        // Calls all methods in screen.onresize Set
 
 })
 
