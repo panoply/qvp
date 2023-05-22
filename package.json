@@ -1,7 +1,7 @@
 {
   "name": "qvp",
   "description": "A tiny (900 bytes gzipped) media query utility for programmatic control of screen viewports.",
-  "version": "0.2.1",
+  "version": "0.3.0",
   "homepage": "https://github.com/panoply/qvp",
   "author": {
     "name": "Nikolas Savvidis",
@@ -63,6 +63,10 @@
     ],
     "clean": false,
     "outDir": ".",
+    "minify": "terser",
+    "terserOptions": {
+      "ecma": 2016
+    },
     "format": [
       "esm"
     ]
@@ -87,6 +91,7 @@
     "eslint": "^8.26.0",
     "gzip-size-cli": "^5.1.0",
     "prettier": "^2.7.1",
+    "terser": "^5.17.4",
     "tsup": "^6.3.0",
     "typescript": "^4.8.4"
   }
