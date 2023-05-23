@@ -133,21 +133,6 @@ T extends `${string}:onexit` ? () => void :
  * Fires upon screen resize
  */
 T extends `${string}:onresize` ? (screenX?: number) => void : never);
-/**
- * Create
- *
- * Create viewport states
- */
-declare function create(opts: ViewportOptions): {
-    onenter: () => void;
-    onexit: () => void;
-    onresize: (x: number) => void;
-    destroy: () => void;
-    readonly screen: ViewportScreen;
-    readonly events: {
-        [name: string]: (() => void)[];
-    };
-};
 declare const qvp: {
     /**
      * Screens
@@ -400,6 +385,27 @@ declare const qvp: {
      * Removes all instances and tears down the listeners.
      */
     destroy: () => void;
+    /**
+     * Touch
+     *
+     * Whether or not the current device is a touch device or not.
+     */
+    isTouch: boolean;
+};
+/**
+ * Create
+ *
+ * Create viewport states
+ */
+declare function create(opts: ViewportOptions): {
+    onenter: () => void;
+    onexit: () => void;
+    onresize: (x: number) => void;
+    destroy: () => void;
+    readonly screen: ViewportScreen;
+    readonly events: {
+        [name: string]: (() => void)[];
+    };
 };
 
 export { qvp as default };

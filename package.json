@@ -1,7 +1,7 @@
 {
   "name": "qvp",
   "description": "A tiny (900 bytes gzipped) media query utility for programmatic control of screen viewports.",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "homepage": "https://github.com/panoply/qvp",
   "author": {
     "name": "Nikolas Savvidis",
