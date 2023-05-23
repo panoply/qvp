@@ -170,180 +170,7 @@ type EventParameters<T extends EventNames> = (
 /* FUNCTIONS                                    */
 /* -------------------------------------------- */
 
-
-/**
- * Debounce
- *
- * Throttles the dimension calculation references
- */
-function debounce (func?: Function, wait?: number) {
-
-  let timeout: number = wait;
-
-  return function () {
-
-    const later = () => {
-      timeout = null;
-      func.apply(this, arguments);
-    };
-
-    if (timeout) cancelAnimationFrame(timeout);
-
-    timeout = requestAnimationFrame(later);
-
-  };
-}
-
-/**
- * Methods
- *
- * Adds methods to the viewports instance that are to be
- * triggered when matched.
- */
-function methods (opts: ViewportOptions | ViewportFunctions, vp: ViewportScreen) {
-
-  if (typeof opts.onenter === 'function') {
-    if (!('qvp:event' in opts.onenter)) opts.onenter['qvp:event'] = NaN;
-    vp.onenter.add(opts.onenter);
-  }
-
-  if (typeof opts.onexit === 'function') {
-    if (!('qvp:event' in opts.onexit)) opts.onexit['qvp:event'] = NaN;
-    vp.onexit.add(opts.onexit);
-  }
-
-  if (typeof opts.onresize === 'function') {
-    if (!('qvp:event' in opts.onresize)) opts.onresize['qvp:event'] = NaN;
-    vp.onresize.add(opts.onresize);
-  }
-
-  if (typeof opts.oninit === 'function') {
-    if (!('qvp:event' in opts.oninit)) opts.oninit['qvp:event'] = NaN;
-    vp.oninit.add(opts.oninit);
-  }
-
-}
-
-/**
- * Emit Event
- *
- * Private function use for emitting events which users are subscribed.
- */
-function emit<T extends EventNames> (name: T, ...args: EventParameters<T>[]) {
-
-  const vp = qvp.get(name.split(':')[0]);
-
-  if (vp === false) return;
-  if (!(name in vp.events)) return;
-
-
-  for (let i = 0; i < vp.events[name].length; i++) {
-    vp.events[name][i].apply(null, args);
-    if (name.endsWith(':oninit')) qvp.off(name, i);
-    if(!(name in vp.events)) break
-  }
-
-
-}
-
-/**
- * Create
- *
- * Create viewport states
- */
-function create (opts: ViewportOptions) {
-
-  const query = opts.query || 'all';
-  const vp: ViewportScreen = {
-    id: opts.id,
-    query,
-    active: false,
-    test: matchMedia(query),
-    onenter: new Set(),
-    onexit: new Set(),
-    onresize: new Set(),
-    oninit: new Set(),
-    events: Object.create(null)
-  };
-
-  methods(opts, vp);
-
-  /**
-   * Enter
-   *
-   * Invoked when the screen viewport has entered
-   */
-  const onenter = () => {
-
-    if (vp.oninit.size > 0) {
-      vp.oninit.forEach(method => !isNaN(method['qvp:event']) || method());
-      emit(`${opts.id}:oninit`);
-      vp.oninit.clear();
-    }
-
-    vp.onenter.forEach(method => !isNaN(method['qvp:event']) || method());
-    emit(`${opts.id}:onenter`);
-    vp.active = true;
-
-  };
-
-  /**
-   * Exit
-   *
-   * Invoked when the screen viewport has existed
-   */
-  const onexit = () => {
-
-    vp.onexit.forEach(method => !isNaN(method['qvp:event']) || method());
-    emit(`${opts.id}:onexit`);
-    vp.active = false;
-  };
-
-  /**
-   * Resize
-   *
-   * Invoked when the screen is being resized within viewport bounds
-   */
-  const onresize = (x: number) => {
-
-    vp.onresize.forEach(method => !isNaN(method['qvp:event']) || method());
-    emit(`${opts.id}:onresize`, x);
-
-  };
-
-  /**
-   * Listen
-   *
-   * Invoked when the screen viewport has exited
-   */
-  const listen = ({ matches }: MediaQueryListEvent) => matches ? onenter() : onexit();
-
-  /**
-   * Destroy
-   *
-   * Remove the `matchMedia` listener and all events
-   */
-  const destroy = () => {
-    for (const event in vp.events) delete vp.events[event];
-    vp.test.removeEventListener('change', listen);
-  };
-
-  vp.test.addEventListener('change', listen);
-
-  if (vp.test.matches) onenter();
-
-  return {
-    onenter,
-    onexit,
-    onresize,
-    destroy,
-    get screen () { return vp; },
-    get events () { return vp.events; }
-  };
-
-}
-
-
+// @ts-expect-error
 const qvp: {
   /**
    * Screens
@@ -596,7 +423,13 @@ const qvp: {
    *
    * Removes all instances and tears down the listeners.
    */
-  destroy: () => void
+  destroy: () => void;
+  /**
+   * Touch
+   *
+   * Whether or not the current device is a touch device or not.
+   */
+  isTouch: boolean;
 
 } = function QVP (options: ViewportQueries | ViewportOptions | ViewportOptions[]) {
 
@@ -638,146 +471,317 @@ const qvp: {
   }
 };
 
+qvp.viewports = new Map();
 
-{
+Object.defineProperty(qvp, 'isTouch', {
+  get () {
+    // @ts-ignore
+    return (('ontouchstart' in window) || (navigator.maxTouchPoints > 0) || (navigator.msMaxTouchPoints > 0));
+  }
+});
 
-  qvp.viewports = new Map();
+qvp.get = (id: string) => {
 
-  qvp.get = (id: string) => {
+  return qvp.viewports.has(id) ? qvp.viewports.get(id) : false;
 
-    return qvp.viewports.has(id) ? qvp.viewports.get(id) : false
+};
 
-  };
+qvp.add = (id: string, actions: ViewportFunctions) => {
 
-  qvp.add = (id: string, actions: ViewportFunctions) => {
+  const vp = qvp.get(id);
 
-    const vp = qvp.get(id);
+  if (vp === false) return console.error(`qvp: There is no viewport using an id of "${id}"`);
 
-    if (vp === false) return console.error(`qvp: There is no viewport using an id of "${id}"`);
+  methods(actions as ViewportOptions, vp.screen);
 
-    methods(actions as ViewportOptions, vp.screen);
+  if (vp.screen.test.matches) vp.onenter();
 
-    if (vp.screen.test.matches) vp.onenter();
+};
 
-  };
+qvp.off = (name: EventNames, callback?: number | (() => void)) => {
 
-  qvp.off = (name: EventNames, callback?: number | (() => void)) => {
+  const vp = qvp.get(name.split(':')[0]);
 
-    const vp = qvp.get(name.split(':')[0]);
+  if (vp === false) return;
 
-    if (vp === false) return;
+  if (!(name in vp.events)) return;
 
-    if (!(name in vp.events)) return;
+  const size = vp.events[name].length;
 
-    const size = vp.events[name].length;
+  if (typeof callback === 'number') {
 
-    if (typeof callback === 'number') {
+    if (callback <= size - 1) vp.events[name].splice(callback, 1);
 
-      if (callback <= size - 1) vp.events[name].splice(callback, 1);
+  } else if (typeof callback === 'function') {
 
-    } else if (typeof callback === 'function') {
+    const live = [];
 
-      const live = [];
+    for (let i = 0; i < size; i++) if (vp.events[name][i] !== callback) live.push(vp.events[name][i]);
 
-      for (let i = 0; i < size; i++) if (vp.events[name][i] !== callback) live.push(vp.events[name][i]);
+    if (live.length > 0) vp.events[name] = live;
 
-      if (live.length > 0) vp.events[name] = live;
+  } else {
 
-    } else {
-
-      delete vp.events[name];
-
-    }
-  };
-
-  qvp.on = <T extends EventNames> (name: T, callback: EventFunctions<EventNames>, scope?: any) => {
-
-    const [ id, fn ] = name.split(':');
-    const vp = qvp.get(id);
-
-    if (vp === false) return;
-    if (!(name in vp.events)) vp.events[name] = [];
-
-    const cb = scope ? callback.bind(scope) : callback;
-
-    cb['qvp:event'] = vp.events[name].length;
-    vp.events[name].push(cb);
-
-    if (vp.screen.test.matches) {
-      if (fn === 'oninit') {
-        cb.call();
-      } else {
-        if (fn === 'onenter') cb.call();
-        methods({ [fn]: cb }, vp.screen);
-      }
-    } else {
-      methods({ [fn]: cb }, vp.screen);
-    }
-
-    return cb['qvp:event'];
-
-  };
-
-  qvp.list = (ids?: string[]) => {
-
-    const items = Array.from(qvp.viewports.values()).map(({ screen }) => screen);
-
-    return ids
-      ? items.filter(({ id }) => ids.includes(id))
-      : items;
-
-  };
-
-  qvp.active = (id?: string) => {
-
-    const items = qvp.list();
-
-    if (id) {
-      const find = qvp.get(id);
-      return find ? find.screen.active : false;
-    }
-
-    const filter = items.filter(({ active }) => active === true);
-
-    return filter.length > 1 ? filter : filter[0];
-
-  };
-
-  qvp.test = (screens: string | string[], separator = ',') => {
-
-    if (typeof screens === 'string') {
-      return screens.indexOf(separator) > -1 ? screens.split(separator).some(qvp.active) : !!qvp.active(screens);
-    }
-
-    return screens.some(qvp.active);
-
-  };
-
-  qvp.remove = (id: string) => {
-
-    if (qvp.viewports.has(id)) {
-      qvp.viewports.get(id).destroy();
-      qvp.viewports.delete(id);
-    }
-
-  };
-
-  qvp.destroy = () => {
-
-    removeEventListener('resize', debounce());
-
-    qvp.viewports.forEach(vp => vp.destroy());
-    qvp.viewports.clear();
-
-  };
-
-  qvp.screens = () => {
-
-    throw Error('qvp: The qvp.screens() is deprecated, use the default import, e.g: qvp(...)')
+    delete vp.events[name];
 
   }
+};
+
+qvp.on = <T extends EventNames> (name: T, callback: EventFunctions<EventNames>, scope?: any) => {
+
+  const [ id, fn ] = name.split(':');
+  const vp = qvp.get(id);
+
+  if (vp === false) return;
+  if (!(name in vp.events)) vp.events[name] = [];
+
+  const cb = scope ? callback.bind(scope) : callback;
+
+  cb['qvp:event'] = vp.events[name].length;
+  vp.events[name].push(cb);
+
+  if (vp.screen.test.matches) {
+    if (fn === 'oninit') {
+      cb.call();
+    } else {
+      if (fn === 'onenter') cb.call();
+      methods({ [fn]: cb }, vp.screen);
+    }
+  } else {
+    methods({ [fn]: cb }, vp.screen);
+  }
+
+  return cb['qvp:event'];
+
+};
+
+qvp.list = (ids?: string[]) => {
+
+  const items = Array.from(qvp.viewports.values()).map(({ screen }) => screen);
+
+  return ids
+    ? items.filter(({ id }) => ids.includes(id))
+    : items;
+
+};
+
+qvp.active = (id?: string) => {
+
+  const items = qvp.list();
+
+  if (id) {
+    const find = qvp.get(id);
+    return find ? find.screen.active : false;
+  }
+
+  const filter = items.filter(({ active }) => active === true);
+
+  return filter.length > 1 ? filter : filter[0];
+
+};
+
+qvp.test = (screens: string | string[], separator = ',') => {
+
+  if (typeof screens === 'string') {
+    return screens.indexOf(separator) > -1 ? screens.split(separator).some(qvp.active) : !!qvp.active(screens);
+  }
+
+  return screens.some(qvp.active);
+
+};
+
+qvp.remove = (id: string) => {
+
+  if (qvp.viewports.has(id)) {
+    qvp.viewports.get(id).destroy();
+    qvp.viewports.delete(id);
+  }
+
+};
+
+qvp.destroy = () => {
+
+  removeEventListener('resize', debounce());
+
+  qvp.viewports.forEach(vp => vp.destroy());
+  qvp.viewports.clear();
+
+};
+
+qvp.screens = () => {
+
+  throw Error('qvp: The qvp.screens() is deprecated, use the default import, e.g: qvp(...)');
+
+};
+
+/**
+ * Debounce
+ *
+ * Throttles the dimension calculation references
+ */
+function debounce (func?: Function, wait?: number) {
+
+  let timeout: number = wait;
+
+  return function () {
+
+    const later = () => {
+      timeout = null;
+      func.apply(this, arguments);
+    };
+
+    if (timeout) cancelAnimationFrame(timeout);
+
+    timeout = requestAnimationFrame(later);
+
+  };
 }
 
+/**
+ * Methods
+ *
+ * Adds methods to the viewports instance that are to be
+ * triggered when matched.
+ */
+function methods (opts: ViewportOptions | ViewportFunctions, vp: ViewportScreen) {
 
-export default qvp
+  if (typeof opts.onenter === 'function') {
+    if (!('qvp:event' in opts.onenter)) opts.onenter['qvp:event'] = NaN;
+    vp.onenter.add(opts.onenter);
+  }
 
+  if (typeof opts.onexit === 'function') {
+    if (!('qvp:event' in opts.onexit)) opts.onexit['qvp:event'] = NaN;
+    vp.onexit.add(opts.onexit);
+  }
+
+  if (typeof opts.onresize === 'function') {
+    if (!('qvp:event' in opts.onresize)) opts.onresize['qvp:event'] = NaN;
+    vp.onresize.add(opts.onresize);
+  }
+
+  if (typeof opts.oninit === 'function') {
+    if (!('qvp:event' in opts.oninit)) opts.oninit['qvp:event'] = NaN;
+    vp.oninit.add(opts.oninit);
+  }
+
+}
+
+/**
+ * Emit Event
+ *
+ * Private function use for emitting events which users are subscribed.
+ */
+function emit<T extends EventNames> (name: T, ...args: EventParameters<T>[]) {
+
+  const vp = qvp.get(name.split(':')[0]);
+
+  if (vp === false) return;
+  if (!(name in vp.events)) return;
+
+  for (let i = 0; i < vp.events[name].length; i++) {
+    vp.events[name][i].apply(null, args);
+    if (name.endsWith(':oninit')) qvp.off(name, i);
+    if (!(name in vp.events)) break;
+  }
+
+}
+
+/**
+ * Create
+ *
+ * Create viewport states
+ */
+function create (opts: ViewportOptions) {
+
+  const query = opts.query || 'all';
+  const vp: ViewportScreen = {
+    id: opts.id,
+    query,
+    active: false,
+    test: matchMedia(query),
+    onenter: new Set(),
+    onexit: new Set(),
+    onresize: new Set(),
+    oninit: new Set(),
+    events: Object.create(null)
+  };
+
+  methods(opts, vp);
+
+  /**
+   * Enter
+   *
+   * Invoked when the screen viewport has entered
+   */
+  const onenter = () => {
+
+    if (vp.oninit.size > 0) {
+      vp.oninit.forEach(method => !isNaN(method['qvp:event']) || method());
+      emit(`${opts.id}:oninit`);
+      vp.oninit.clear();
+    }
+
+    vp.onenter.forEach(method => !isNaN(method['qvp:event']) || method());
+    emit(`${opts.id}:onenter`);
+    vp.active = true;
+
+  };
+
+  /**
+   * Exit
+   *
+   * Invoked when the screen viewport has existed
+   */
+  const onexit = () => {
+
+    vp.onexit.forEach(method => !isNaN(method['qvp:event']) || method());
+    emit(`${opts.id}:onexit`);
+    vp.active = false;
+  };
+
+  /**
+   * Resize
+   *
+   * Invoked when the screen is being resized within viewport bounds
+   */
+  const onresize = (x: number) => {
+
+    vp.onresize.forEach(method => !isNaN(method['qvp:event']) || method());
+    emit(`${opts.id}:onresize`, x);
+
+  };
+
+  /**
+   * Listen
+   *
+   * Invoked when the screen viewport has exited
+   */
+  const listen = ({ matches }: MediaQueryListEvent) => matches ? onenter() : onexit();
+
+  /**
+   * Destroy
+   *
+   * Remove the `matchMedia` listener and all events
+   */
+  const destroy = () => {
+    for (const event in vp.events) delete vp.events[event];
+    vp.test.removeEventListener('change', listen);
+  };
+
+  vp.test.addEventListener('change', listen);
+
+  if (vp.test.matches) onenter();
+
+  return {
+    onenter,
+    onexit,
+    onresize,
+    destroy,
+    get screen () { return vp; },
+    get events () { return vp.events; }
+  };
+
+}
+
+export default qvp;
